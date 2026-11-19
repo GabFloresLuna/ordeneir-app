@@ -1,8 +1,11 @@
 package cl.floresluna.ordenier.auth;
 
+import cl.floresluna.ordenier.auth.dto.LoginRequest;
 import cl.floresluna.ordenier.auth.dto.RegisterRequest;
 import cl.floresluna.ordenier.auth.dto.RegisterResponse;
+import cl.floresluna.ordenier.auth.dto.TokenResponse;
 import cl.floresluna.ordenier.common.EmailAlreadyRegisteredException;
+import cl.floresluna.ordenier.common.InvalidCredentialsException;
 import cl.floresluna.ordenier.security.JwtService;
 import cl.floresluna.ordenier.user.User;
 import cl.floresluna.ordenier.user.UserRepository;
@@ -34,5 +37,13 @@ public class AuthService {
 		}
 		String token = jwtService.issueToken(user.getId());
 		return new RegisterResponse(user.getId(), user.getEmail(), token, JwtService.EXPIRES_IN_SECONDS);
+	}
+
+	// Email inexistente y contraseña errónea lanzan la misma excepción (R8).
+	public TokenResponse login(LoginRequest request) {
+		User user = userRepository.findByEmail(request.email())
+				.filter(found -> passwordEncoder.matches(request.password(), found.getPasswordHash()))
+				.orElseThrow(InvalidCredentialsException::new);
+		return new TokenResponse(jwtService.issueToken(user.getId()), JwtService.EXPIRES_IN_SECONDS);
 	}
 }

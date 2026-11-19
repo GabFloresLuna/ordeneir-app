@@ -16,6 +16,12 @@ public class GlobalExceptionHandler {
 				.body(new ApiError("EMAIL_DUPLICADO", "Ya existe una cuenta con ese email."));
 	}
 
+	@ExceptionHandler(InvalidCredentialsException.class)
+	ResponseEntity<ApiError> handleInvalidCredentials() {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(new ApiError("CREDENCIALES_INVALIDAS", "Email o contraseña incorrectos."));
+	}
+
 	@ExceptionHandler({ MethodArgumentNotValidException.class, HttpMessageNotReadableException.class })
 	ResponseEntity<ApiError> handleInvalidData() {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
