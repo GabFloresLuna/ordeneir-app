@@ -25,4 +25,10 @@ public record RegisterRequest(
 	public boolean isPasswordWithinByteLimit() {
 		return password == null || password.getBytes(StandardCharsets.UTF_8).length <= MAX_PASSWORD_BYTES;
 	}
+
+	// Sin la contraseña, para que nunca salga en un log (R13, plan D12).
+	@Override
+	public String toString() {
+		return "RegisterRequest[email=" + email + ", password=***]";
+	}
 }

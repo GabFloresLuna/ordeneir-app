@@ -40,4 +40,10 @@ public class User {
 	public String getPasswordHash() {
 		return passwordHash;
 	}
+
+	// Sin el hash, para que nunca salga en un log (R13, plan D12).
+	@Override
+	public String toString() {
+		return "User[id=" + id + ", email=" + email + "]";
+	}
 }

@@ -12,4 +12,10 @@ public record LoginRequest(@NotBlank String email, @NotNull String password) {
 			email = email.trim().toLowerCase(Locale.ROOT);
 		}
 	}
+
+	// Sin la contraseña, para que nunca salga en un log (R13, plan D12).
+	@Override
+	public String toString() {
+		return "LoginRequest[email=" + email + ", password=***]";
+	}
 }
