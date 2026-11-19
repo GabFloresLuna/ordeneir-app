@@ -2,6 +2,7 @@ package cl.floresluna.ordenier.auth;
 
 import cl.floresluna.ordenier.auth.dto.RegisterRequest;
 import cl.floresluna.ordenier.auth.dto.RegisterResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +22,7 @@ public class AuthController {
 
 	@PostMapping("/register")
 	@ResponseStatus(HttpStatus.CREATED)
-	public RegisterResponse register(@RequestBody RegisterRequest request) {
+	public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
 		return authService.register(request);
 	}
 }
