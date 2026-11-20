@@ -43,7 +43,7 @@ public abstract class AbstractIntegrationTest {
 	@BeforeEach
 	void cleanDatabase() {
 		// Sin CASCADE: borraría también las categorías predefinidas (plan D3).
-		jdbcTemplate.execute("TRUNCATE TABLE movements RESTART IDENTITY");
+		jdbcTemplate.execute("TRUNCATE TABLE budget_lines, budgets, movements RESTART IDENTITY");
 		jdbcTemplate.execute("DELETE FROM categories WHERE user_id IS NOT NULL");
 		jdbcTemplate.execute("DELETE FROM users");
 		jdbcTemplate.execute("ALTER TABLE users ALTER COLUMN id RESTART");

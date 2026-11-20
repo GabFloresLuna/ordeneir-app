@@ -3,16 +3,12 @@ package cl.floresluna.ordenier.movement;
 import cl.floresluna.ordenier.category.Category;
 import cl.floresluna.ordenier.category.CategoryRepository;
 import cl.floresluna.ordenier.common.InvalidCategoryException;
-import cl.floresluna.ordenier.common.InvalidDataException;
+import cl.floresluna.ordenier.common.MonthRange;
 import cl.floresluna.ordenier.common.MovementNotFoundException;
 import cl.floresluna.ordenier.common.PageResponse;
 import cl.floresluna.ordenier.movement.dto.MovementRequest;
 import cl.floresluna.ordenier.movement.dto.MovementResponse;
 import java.time.Clock;
-import java.time.Instant;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.util.regex.Pattern;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MovementService {
 
-	private static final Pattern MONTH_PATTERN = Pattern.compile("^\\d{4}-(0[1-9]|1[0-2])$");
-	private static final ZoneId SANTIAGO = ZoneId.of("America/Santiago");
 	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "occurredAt")
 			.and(Sort.by(Sort.Direction.DESC, "id"));
 
@@ -89,15 +83,10 @@ public class MovementService {
 		if (mes == null) {
 			result = movementRepository.findByUserIdAndDeletedAtIsNull(userId, pageable);
 		} else {
-			if (!MONTH_PATTERN.matcher(mes).matches()) {
-				throw new InvalidDataException();
-			}
-			YearMonth month = YearMonth.parse(mes);
-			Instant from = month.atDay(1).atStartOfDay(SANTIAGO).toInstant();
-			Instant to = month.plusMonths(1).atDay(1).atStartOfDay(SANTIAGO).toInstant();
+			MonthRange range = MonthRange.parse(mes);
 			result = movementRepository
 					.findByUserIdAndDeletedAtIsNullAndOccurredAtGreaterThanEqualAndOccurredAtLessThan(
-							userId, from, to, pageable);
+							userId, range.from(), range.to(), pageable);
 		}
 		return PageResponse.from(result, MovementResponse::from);
 	}

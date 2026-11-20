@@ -43,6 +43,12 @@ public class GlobalExceptionHandler {
 		return json(HttpStatus.BAD_REQUEST, "CATEGORIA_INVALIDA", "La categoría no es válida.");
 	}
 
+	@ExceptionHandler(BudgetSumExceedsException.class)
+	ResponseEntity<ApiError> handleBudgetSumExceeds() {
+		return json(HttpStatus.BAD_REQUEST, "SUMA_CATEGORIAS_EXCEDE_GENERAL",
+				"La suma de los presupuestos por categoría supera el presupuesto general.");
+	}
+
 	@ExceptionHandler(CategoryDuplicateException.class)
 	ResponseEntity<ApiError> handleCategoryDuplicate() {
 		return json(HttpStatus.CONFLICT, "CATEGORIA_DUPLICADA", "Ya existe una categoría con ese nombre.");
