@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
 		return json(HttpStatus.BAD_REQUEST, "DATOS_INVALIDOS", "Los datos enviados no son válidos.");
 	}
 
+	@ExceptionHandler(MovementNotFoundException.class)
+	ResponseEntity<ApiError> handleMovementNotFound() {
+		return json(HttpStatus.NOT_FOUND, "MOVIMIENTO_NO_ENCONTRADO", "El movimiento no existe.");
+	}
+
 	@ExceptionHandler({ NoResourceFoundException.class, NoHandlerFoundException.class })
 	ResponseEntity<ApiError> handleRouteNotFound() {
 		return json(HttpStatus.NOT_FOUND, "RUTA_NO_ENCONTRADA", "La ruta solicitada no existe.");

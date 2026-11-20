@@ -1,5 +1,6 @@
 package cl.floresluna.ordenier.movement;
 
+import cl.floresluna.ordenier.common.MovementNotFoundException;
 import cl.floresluna.ordenier.movement.dto.MovementRequest;
 import cl.floresluna.ordenier.movement.dto.MovementResponse;
 import java.time.Clock;
@@ -22,5 +23,12 @@ public class MovementService {
 		Movement saved = movementRepository.save(new Movement(userId, data.amount(), data.type(),
 				data.occurredAt(), data.description()));
 		return MovementResponse.from(saved);
+	}
+
+	// Inexistente, eliminado o ajeno dan la misma respuesta (R12, plan D6).
+	public MovementResponse get(long userId, long id) {
+		return movementRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
+				.map(MovementResponse::from)
+				.orElseThrow(MovementNotFoundException::new);
 	}
 }
