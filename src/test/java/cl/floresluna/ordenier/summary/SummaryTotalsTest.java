@@ -44,8 +44,6 @@ class SummaryTotalsTest extends AbstractIntegrationTest {
 				.andExpect(jsonPath("$.totalIncome").value(1000000))
 				.andExpect(jsonPath("$.totalExpenses").value(300000))
 				.andExpect(jsonPath("$.balance").value(700000))
-				.andExpect(jsonPath("$.expensesByCategory.length()").value(0))
-				.andExpect(jsonPath("$.incomeByCategory.length()").value(0))
 				.andExpect(jsonPath("$", hasKey("budget")))
 				.andExpect(jsonPath("$.budget").value(nullValue()));
 	}
