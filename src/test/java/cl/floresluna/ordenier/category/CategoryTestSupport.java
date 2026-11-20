@@ -1,11 +1,37 @@
 package cl.floresluna.ordenier.category;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.jayway.jsonpath.JsonPath;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 
 /** Ayudas de prueba para categorías: ids de predefinidas y categorías propias por SQL (plan, estrategia de tests). */
 public final class CategoryTestSupport {
 
+	public static final String CATEGORIES = "/api/v1/categorias";
+
 	private CategoryTestSupport() {
+	}
+
+	public record TestUser(long id, String token) {
+
+		public String bearer() {
+			return "Bearer " + token;
+		}
+	}
+
+	/** Registra un usuario por la API real y entrega su id y token. */
+	public static TestUser registerUser(MockMvc mockMvc, String email) throws Exception {
+		String body = mockMvc.perform(post("/api/v1/auth/register")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"email\":\"" + email + "\",\"password\":\"clave-segura-123\"}"))
+				.andExpect(status().isCreated())
+				.andReturn().getResponse().getContentAsString();
+		return new TestUser(((Number) JsonPath.read(body, "$.id")).longValue(),
+				JsonPath.read(body, "$.accessToken"));
 	}
 
 	public static long predefinedId(JdbcTemplate jdbc, String name, String type) {

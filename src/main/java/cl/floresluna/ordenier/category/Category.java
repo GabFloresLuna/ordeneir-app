@@ -36,6 +36,12 @@ public class Category {
 	protected Category() {
 	}
 
+	public Category(Long userId, String name, MovementType type) {
+		this.userId = userId;
+		this.name = name;
+		this.type = type;
+	}
+
 	public Long getId() {
 		return id;
 	}

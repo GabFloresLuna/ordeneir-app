@@ -43,6 +43,11 @@ public class GlobalExceptionHandler {
 		return json(HttpStatus.BAD_REQUEST, "CATEGORIA_INVALIDA", "La categoría no es válida.");
 	}
 
+	@ExceptionHandler(CategoryDuplicateException.class)
+	ResponseEntity<ApiError> handleCategoryDuplicate() {
+		return json(HttpStatus.CONFLICT, "CATEGORIA_DUPLICADA", "Ya existe una categoría con ese nombre.");
+	}
+
 	@ExceptionHandler(MovementNotFoundException.class)
 	ResponseEntity<ApiError> handleMovementNotFound() {
 		return json(HttpStatus.NOT_FOUND, "MOVIMIENTO_NO_ENCONTRADO", "El movimiento no existe.");
