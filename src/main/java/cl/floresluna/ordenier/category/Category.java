@@ -62,6 +62,11 @@ public class Category {
 		return deletedAt;
 	}
 
+	/** Borrado lógico: la fila se conserva con la fecha de eliminación (R11). */
+	public void markDeleted(Instant when) {
+		this.deletedAt = when;
+	}
+
 	/** Solo el nombre cambia: el tipo no es actualizable (R3). */
 	public void rename(String newName) {
 		this.name = newName;

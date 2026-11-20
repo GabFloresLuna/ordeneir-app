@@ -69,6 +69,12 @@ public class GlobalExceptionHandler {
 		return json(HttpStatus.FORBIDDEN, "CATEGORIA_NO_MODIFICABLE", "La categoría predefinida no se puede modificar.");
 	}
 
+	@ExceptionHandler(CategoryHasMovementsException.class)
+	ResponseEntity<ApiError> handleCategoryHasMovements() {
+		return json(HttpStatus.CONFLICT, "CATEGORIA_CON_MOVIMIENTOS",
+				"La categoría tiene movimientos y no se puede eliminar.");
+	}
+
 	@ExceptionHandler(MovementNotFoundException.class)
 	ResponseEntity<ApiError> handleMovementNotFound() {
 		return json(HttpStatus.NOT_FOUND, "MOVIMIENTO_NO_ENCONTRADO", "El movimiento no existe.");

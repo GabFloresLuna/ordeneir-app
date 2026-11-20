@@ -13,6 +13,11 @@ public interface BudgetLineRepository extends JpaRepository<BudgetLine, Long> {
 			+ "order by lower(c.name), c.id")
 	List<BudgetLine> findByBudgetIdOrderedByCategoryName(@Param("budgetId") Long budgetId);
 
+	// Descarta las líneas de una categoría eliminada (R11, plan 003 D13).
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Query("delete from BudgetLine l where l.categoryId = :categoryId")
+	void deleteByCategoryId(@Param("categoryId") Long categoryId);
+
 	// Consulta masiva: borra en el acto, antes de los INSERT nuevos (plan 003 D8).
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("delete from BudgetLine l where l.budgetId = :budgetId")

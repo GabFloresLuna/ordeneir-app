@@ -13,6 +13,9 @@ public interface MovementRepository extends JpaRepository<Movement, Long> {
 
 	Optional<Movement> findByIdAndUserIdAndDeletedAtIsNull(Long id, Long userId);
 
+	// ¿La categoría tiene algún movimiento no eliminado? Bloquea su borrado (R12, plan 003 D13, D14).
+	boolean existsByCategoryIdAndDeletedAtIsNull(Long categoryId);
+
 	Page<Movement> findByUserIdAndDeletedAtIsNull(Long userId, Pageable pageable);
 
 	Page<Movement> findByUserIdAndDeletedAtIsNullAndOccurredAtGreaterThanEqualAndOccurredAtLessThan(

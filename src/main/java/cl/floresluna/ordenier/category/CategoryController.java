@@ -5,6 +5,7 @@ import cl.floresluna.ordenier.category.dto.CategoryResponse;
 import cl.floresluna.ordenier.security.AuthenticatedUser;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,5 +42,11 @@ public class CategoryController {
 	@PutMapping("/{id}")
 	public CategoryResponse update(@PathVariable long id, @RequestBody CategoryRequest request) {
 		return categoryService.update(authenticatedUser.id(), id, request);
+	}
+
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable long id) {
+		categoryService.delete(authenticatedUser.id(), id);
 	}
 }
