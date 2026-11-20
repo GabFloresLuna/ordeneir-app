@@ -1,5 +1,6 @@
 package cl.floresluna.ordenier.summary;
 
+import cl.floresluna.ordenier.budget.BudgetService;
 import cl.floresluna.ordenier.category.Category;
 import cl.floresluna.ordenier.category.CategoryRepository;
 import cl.floresluna.ordenier.common.MonthRange;
@@ -22,15 +23,18 @@ public class SummaryService {
 
 	private final MovementRepository movementRepository;
 	private final CategoryRepository categoryRepository;
+	private final BudgetService budgetService;
 
-	public SummaryService(MovementRepository movementRepository, CategoryRepository categoryRepository) {
+	public SummaryService(MovementRepository movementRepository, CategoryRepository categoryRepository,
+			BudgetService budgetService) {
 		this.movementRepository = movementRepository;
 		this.categoryRepository = categoryRepository;
+		this.budgetService = budgetService;
 	}
 
 	// El mes se valida antes de consultar (plan 004 D2). El dueño viene del JWT (R10). Un mes sin movimientos
 	// o futuro no es un caso especial: las consultas devuelven vacío y salen ceros (R6, D8).
-	// T2: desglose por categoría; el presupuesto sale nulo hasta T3.
+	// El presupuesto sale de BudgetService.find, el mismo cálculo de GET /presupuestos/{mes}; nulo si no hay (R4, R5).
 	@Transactional(readOnly = true)
 	public SummaryResponse get(long userId, String month) {
 		MonthRange range = MonthRange.parse(month);
@@ -45,7 +49,7 @@ public class SummaryService {
 		long totalExpenses = sum(expensesByCategory);
 		long totalIncome = sum(incomeByCategory);
 		return new SummaryResponse(month, totalIncome, totalExpenses, totalIncome - totalExpenses,
-				expensesByCategory, incomeByCategory, null);
+				expensesByCategory, incomeByCategory, budgetService.find(userId, month).orElse(null));
 	}
 
 	// Una sola consulta para los nombres (plan 004 D5). Una categoría ausente es un error interno, no un dato inventado.

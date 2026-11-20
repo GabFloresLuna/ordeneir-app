@@ -13,6 +13,7 @@ import cl.floresluna.ordenier.movement.MovementType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,10 +64,15 @@ public class BudgetService {
 	// El mes se valida antes de buscar (plan 003 D11); sin presupuesto del usuario para el mes, 404 (R22).
 	@Transactional(readOnly = true)
 	public BudgetResponse get(long userId, String month) {
+		return find(userId, month).orElseThrow(BudgetNotFoundException::new);
+	}
+
+	// Un solo cálculo del presupuesto con su gastado para GET /presupuestos/{mes} y el resumen (plan 004 D4, R5).
+	@Transactional(readOnly = true)
+	public Optional<BudgetResponse> find(long userId, String month) {
 		MonthRange range = MonthRange.parse(month);
-		Budget budget = budgetRepository.findByUserIdAndMonth(userId, month)
-				.orElseThrow(BudgetNotFoundException::new);
-		return toResponse(userId, month, range, budget.getAmount(), budget.getId());
+		return budgetRepository.findByUserIdAndMonth(userId, month)
+				.map(budget -> toResponse(userId, month, range, budget.getAmount(), budget.getId()));
 	}
 
 	// Borrado físico: las líneas caen por ON DELETE CASCADE (plan 003 D11, R23).
