@@ -3,10 +3,13 @@ package cl.floresluna.ordenier.category;
 import cl.floresluna.ordenier.category.dto.CategoryRequest;
 import cl.floresluna.ordenier.category.dto.CategoryResponse;
 import cl.floresluna.ordenier.common.CategoryDuplicateException;
+import cl.floresluna.ordenier.common.CategoryNotFoundException;
+import cl.floresluna.ordenier.common.CategoryNotModifiableException;
 import cl.floresluna.ordenier.movement.MovementType;
 import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CategoryService {
@@ -35,6 +38,26 @@ public class CategoryService {
 		try {
 			return CategoryResponse.from(
 					categoryRepository.saveAndFlush(new Category(userId, data.name(), data.type())));
+		} catch (DataIntegrityViolationException e) {
+			throw new CategoryDuplicateException();
+		}
+	}
+
+	// Cuerpo válido primero (R5); luego 404 si no es visible (R10) y 403 si es predefinida (R9, plan D13).
+	// Solo cambia el nombre; el duplicado excluye a la propia categoría (R8, plan D5).
+	@Transactional
+	public CategoryResponse update(long userId, long id, CategoryRequest request) {
+		String name = request.validateName();
+		Category category = categoryRepository.findVisible(id, userId).orElseThrow(CategoryNotFoundException::new);
+		if (category.getUserId() == null) {
+			throw new CategoryNotModifiableException();
+		}
+		if (categoryRepository.existsOtherVisibleByTypeAndName(userId, category.getType(), name, id)) {
+			throw new CategoryDuplicateException();
+		}
+		category.rename(name);
+		try {
+			return CategoryResponse.from(categoryRepository.saveAndFlush(category));
 		} catch (DataIntegrityViolationException e) {
 			throw new CategoryDuplicateException();
 		}

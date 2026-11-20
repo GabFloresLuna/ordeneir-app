@@ -28,4 +28,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 			+ "and (c.userId is null or c.userId = :userId) and c.type = :type and lower(c.name) = lower(:name)")
 	boolean existsVisibleByTypeAndName(@Param("userId") Long userId, @Param("type") MovementType type,
 			@Param("name") String name);
+
+	// Igual que la anterior, pero ignora la propia categoría: renombrarse cambiando mayúsculas se permite (R8, plan D5).
+	@Query("select count(c) > 0 from Category c where c.deletedAt is null and c.id <> :excludeId "
+			+ "and (c.userId is null or c.userId = :userId) and c.type = :type and lower(c.name) = lower(:name)")
+	boolean existsOtherVisibleByTypeAndName(@Param("userId") Long userId, @Param("type") MovementType type,
+			@Param("name") String name, @Param("excludeId") Long excludeId);
 }

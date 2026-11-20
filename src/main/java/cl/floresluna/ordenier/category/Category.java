@@ -61,4 +61,9 @@ public class Category {
 	public Instant getDeletedAt() {
 		return deletedAt;
 	}
+
+	/** Solo el nombre cambia: el tipo no es actualizable (R3). */
+	public void rename(String newName) {
+		this.name = newName;
+	}
 }

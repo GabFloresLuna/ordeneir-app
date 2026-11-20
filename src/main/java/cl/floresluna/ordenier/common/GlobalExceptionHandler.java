@@ -48,6 +48,16 @@ public class GlobalExceptionHandler {
 		return json(HttpStatus.CONFLICT, "CATEGORIA_DUPLICADA", "Ya existe una categoría con ese nombre.");
 	}
 
+	@ExceptionHandler(CategoryNotFoundException.class)
+	ResponseEntity<ApiError> handleCategoryNotFound() {
+		return json(HttpStatus.NOT_FOUND, "CATEGORIA_NO_ENCONTRADA", "La categoría no existe.");
+	}
+
+	@ExceptionHandler(CategoryNotModifiableException.class)
+	ResponseEntity<ApiError> handleCategoryNotModifiable() {
+		return json(HttpStatus.FORBIDDEN, "CATEGORIA_NO_MODIFICABLE", "La categoría predefinida no se puede modificar.");
+	}
+
 	@ExceptionHandler(MovementNotFoundException.class)
 	ResponseEntity<ApiError> handleMovementNotFound() {
 		return json(HttpStatus.NOT_FOUND, "MOVIMIENTO_NO_ENCONTRADO", "El movimiento no existe.");

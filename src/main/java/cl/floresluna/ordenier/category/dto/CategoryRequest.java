@@ -20,6 +20,11 @@ public record CategoryRequest(JsonNode name, JsonNode type) {
 	}
 
 	// Texto de 1 a 50 caracteres tras recortar; se cuenta en code points, no en unidades UTF-16 (plan).
+	/** Solo el nombre: al editar, un `type` en el cuerpo se ignora (R3, plan). */
+	public String validateName() {
+		return validName();
+	}
+
 	private String validName() {
 		if (isMissing(name) || !name.isString()) {
 			throw new InvalidDataException();
