@@ -1,5 +1,7 @@
 package cl.floresluna.ordenier.movement;
 
+import static cl.floresluna.ordenier.category.CategoryTestSupport.categoryField;
+import static cl.floresluna.ordenier.category.CategoryTestSupport.othersId;
 import static cl.floresluna.ordenier.movement.MovementTestSupport.MOVEMENTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,6 +35,7 @@ class MovementReadTest extends AbstractIntegrationTest {
 		view(ana, id)
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(id))
+				.andExpect(jsonPath("$.categoryId").value(othersId(jdbcTemplate, "GASTO")))
 				.andExpect(jsonPath("$.amount").value(15000))
 				.andExpect(jsonPath("$.type").value("GASTO"))
 				.andExpect(jsonPath("$.occurredAt").value("2026-11-19T18:30:00Z"))
@@ -72,7 +75,7 @@ class MovementReadTest extends AbstractIntegrationTest {
 	private long createFor(TestUser user, String description) throws Exception {
 		String body = mockMvc.perform(post(MOVEMENTS).header("Authorization", user.bearer())
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"amount\":15000,\"type\":\"GASTO\",\"occurredAt\":\"2026-11-19T15:30:00-03:00\","
+						.content("{" + cat("GASTO") + "\"amount\":15000,\"type\":\"GASTO\",\"occurredAt\":\"2026-11-19T15:30:00-03:00\","
 								+ "\"description\":\"" + description + "\"}"))
 				.andExpect(status().isCreated())
 				.andReturn().getResponse().getContentAsString();
@@ -88,5 +91,9 @@ class MovementReadTest extends AbstractIntegrationTest {
 				.andExpect(jsonPath("$.codigo").value("MOVIMIENTO_NO_ENCONTRADO"))
 				.andExpect(jsonPath("$.mensaje").isNotEmpty())
 				.andReturn().getResponse().getContentAsString();
+	}
+
+	private String cat(String type) {
+		return categoryField(jdbcTemplate, type);
 	}
 }

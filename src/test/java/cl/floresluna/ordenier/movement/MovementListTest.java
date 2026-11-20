@@ -1,5 +1,6 @@
 package cl.floresluna.ordenier.movement;
 
+import static cl.floresluna.ordenier.category.CategoryTestSupport.othersId;
 import static cl.floresluna.ordenier.movement.MovementTestSupport.MOVEMENTS;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -48,6 +49,7 @@ class MovementListTest extends AbstractIntegrationTest {
 				.andExpect(jsonPath("$.content[0].id").value(id))
 				.andExpect(jsonPath("$.content[0].amount").value(1000))
 				.andExpect(jsonPath("$.content[0].type").value("GASTO"))
+				.andExpect(jsonPath("$.content[0].categoryId").value(othersId(jdbcTemplate, "GASTO")))
 				.andExpect(jsonPath("$.content[0].occurredAt").value("2026-11-19T18:30:00Z"))
 				.andExpect(jsonPath("$.content[0].description").value("Almuerzo"))
 				.andExpect(jsonPath("$.content[0].userId").doesNotExist());
@@ -224,9 +226,9 @@ class MovementListTest extends AbstractIntegrationTest {
 
 	private long insert(TestUser user, String occurredAt, String description) {
 		return jdbcTemplate.queryForObject(
-				"INSERT INTO movements (user_id, amount, type, occurred_at, description) "
-						+ "VALUES (?, 1000, 'GASTO', CAST(? AS timestamptz), ?) RETURNING id",
-				Long.class, user.id(), occurredAt, description);
+				"INSERT INTO movements (user_id, amount, type, category_id, occurred_at, description) "
+						+ "VALUES (?, 1000, 'GASTO', ?, CAST(? AS timestamptz), ?) RETURNING id",
+				Long.class, user.id(), othersId(jdbcTemplate, "GASTO"), occurredAt, description);
 	}
 
 	private void insertMany(TestUser user, int count) {

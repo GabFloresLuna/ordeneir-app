@@ -1,5 +1,6 @@
 package cl.floresluna.ordenier.movement;
 
+import static cl.floresluna.ordenier.category.CategoryTestSupport.categoryField;
 import static cl.floresluna.ordenier.movement.MovementTestSupport.MOVEMENTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -67,7 +68,7 @@ class MovementIsolationTest extends AbstractIntegrationTest {
 
 		notFoundBody(mockMvc.perform(put(MOVEMENTS + "/" + anaId1).header("Authorization", bea.bearer())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"amount\":1,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE
+				.content("{" + cat("GASTO") + "\"amount\":1,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE
 						+ "\",\"description\":\"Hackeado\"}")));
 
 		assertThat(rowOf(anaId1)).isEqualTo(before);
@@ -90,7 +91,7 @@ class MovementIsolationTest extends AbstractIntegrationTest {
 	void bodyWithForeignUserIdOrIdDoesNotChangeOwnerOrId() throws Exception {
 		String response = mockMvc.perform(post(MOVEMENTS).header("Authorization", bea.bearer())
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"id\":" + anaId1 + ",\"userId\":" + ana.id()
+						.content("{" + cat("INGRESO") + "\"id\":" + anaId1 + ",\"userId\":" + ana.id()
 								+ ",\"amount\":700,\"type\":\"INGRESO\",\"occurredAt\":\"" + DATE + "\"}"))
 				.andExpect(status().isCreated())
 				.andReturn().getResponse().getContentAsString();
@@ -106,7 +107,7 @@ class MovementIsolationTest extends AbstractIntegrationTest {
 	void updateWithForeignUserIdInBodyKeepsOwnerAndId() throws Exception {
 		mockMvc.perform(put(MOVEMENTS + "/" + beaId).header("Authorization", bea.bearer())
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"id\":" + anaId1 + ",\"userId\":" + ana.id()
+						.content("{" + cat("GASTO") + "\"id\":" + anaId1 + ",\"userId\":" + ana.id()
 								+ ",\"amount\":800,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE + "\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(beaId))
@@ -142,7 +143,7 @@ class MovementIsolationTest extends AbstractIntegrationTest {
 	private long createFor(TestUser user, int amount, String type, String description) throws Exception {
 		String response = mockMvc.perform(post(MOVEMENTS).header("Authorization", user.bearer())
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"amount\":" + amount + ",\"type\":\"" + type + "\",\"occurredAt\":\"" + DATE
+						.content("{" + cat(type) + "\"amount\":" + amount + ",\"type\":\"" + type + "\",\"occurredAt\":\"" + DATE
 								+ "\",\"description\":\"" + description + "\"}"))
 				.andExpect(status().isCreated())
 				.andReturn().getResponse().getContentAsString();
@@ -154,5 +155,9 @@ class MovementIsolationTest extends AbstractIntegrationTest {
 				.andExpect(jsonPath("$.codigo").value("MOVIMIENTO_NO_ENCONTRADO"))
 				.andExpect(jsonPath("$.mensaje").isNotEmpty())
 				.andReturn().getResponse().getContentAsString();
+	}
+
+	private String cat(String type) {
+		return categoryField(jdbcTemplate, type);
 	}
 }

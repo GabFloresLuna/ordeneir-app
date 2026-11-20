@@ -1,5 +1,6 @@
 package cl.floresluna.ordenier.movement;
 
+import static cl.floresluna.ordenier.category.CategoryTestSupport.categoryField;
 import static cl.floresluna.ordenier.movement.MovementTestSupport.MOVEMENTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -63,7 +64,7 @@ class MovementDeleteTest extends AbstractIntegrationTest {
 				.header("Authorization", ana.bearer())));
 		notFoundBody(mockMvc.perform(put(MOVEMENTS + "/" + deletedId).header("Authorization", ana.bearer())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"amount\":100,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE + "\"}")));
+				.content("{" + cat("GASTO") + "\"amount\":100,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE + "\"}")));
 		String again = notFoundBody(remove(ana, deletedId));
 
 		assertThat(again).isEqualTo(view);
@@ -113,7 +114,7 @@ class MovementDeleteTest extends AbstractIntegrationTest {
 	private long createFor(TestUser user) throws Exception {
 		String response = mockMvc.perform(post(MOVEMENTS).header("Authorization", user.bearer())
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"amount\":15000,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE
+						.content("{" + cat("GASTO") + "\"amount\":15000,\"type\":\"GASTO\",\"occurredAt\":\"" + DATE
 								+ "\",\"description\":\"Almuerzo\"}"))
 				.andExpect(status().isCreated())
 				.andReturn().getResponse().getContentAsString();
@@ -129,5 +130,9 @@ class MovementDeleteTest extends AbstractIntegrationTest {
 				.andExpect(jsonPath("$.codigo").value("MOVIMIENTO_NO_ENCONTRADO"))
 				.andExpect(jsonPath("$.mensaje").isNotEmpty())
 				.andReturn().getResponse().getContentAsString();
+	}
+
+	private String cat(String type) {
+		return categoryField(jdbcTemplate, type);
 	}
 }

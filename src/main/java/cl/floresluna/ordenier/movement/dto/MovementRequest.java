@@ -14,18 +14,21 @@ import tools.jackson.databind.JsonNode;
  * para que la respuesta no dependa de la coerción de Jackson (plan D2, D3, D4).
  * No tiene id ni userId: si vienen en el cuerpo se ignoran (plan D5).
  */
-public record MovementRequest(JsonNode amount, JsonNode type, JsonNode occurredAt, JsonNode description) {
+public record MovementRequest(JsonNode amount, JsonNode type, JsonNode categoryId, JsonNode occurredAt,
+		JsonNode description) {
 
 	static final long MIN_AMOUNT = 1L;
 	static final long MAX_AMOUNT = 1_000_000_000_000L;
 	static final int MAX_DESCRIPTION = 200;
 	static final Duration CLOCK_TOLERANCE = Duration.ofMinutes(5);
 
-	public record Validated(long amount, MovementType type, Instant occurredAt, String description) {
+	public record Validated(long amount, MovementType type, long categoryId, Instant occurredAt,
+			String description) {
 	}
 
 	public Validated validate(Clock clock) {
-		return new Validated(validAmount(), validType(), validOccurredAt(clock), validDescription());
+		return new Validated(validAmount(), validType(), validCategoryId(), validOccurredAt(clock),
+				validDescription());
 	}
 
 	private long validAmount() {
@@ -50,6 +53,14 @@ public record MovementRequest(JsonNode amount, JsonNode type, JsonNode occurredA
 			}
 		}
 		throw new InvalidDataException();
+	}
+
+	// Debe venir como entero (R14); si existe y es válida lo decide el servicio (R15, plan D7).
+	private long validCategoryId() {
+		if (isMissing(categoryId) || !categoryId.isIntegralNumber() || !categoryId.canConvertToLong()) {
+			throw new InvalidDataException();
+		}
+		return categoryId.longValue();
 	}
 
 	private Instant validOccurredAt(Clock clock) {

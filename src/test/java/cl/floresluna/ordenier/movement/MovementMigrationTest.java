@@ -1,5 +1,6 @@
 package cl.floresluna.ordenier.movement;
 
+import static cl.floresluna.ordenier.category.CategoryTestSupport.othersId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -12,7 +13,8 @@ import cl.floresluna.ordenier.AbstractIntegrationTest;
 class MovementMigrationTest extends AbstractIntegrationTest {
 
 	private static final String INSERT =
-			"INSERT INTO movements (user_id, amount, type, occurred_at) VALUES (?, ?, ?, now())";
+			"INSERT INTO movements (user_id, amount, type, category_id, occurred_at) VALUES (?, ?, ?, "
+					+ "(SELECT id FROM categories WHERE user_id IS NULL AND name = 'Otros' AND type = 'GASTO'), now())";
 
 	@Autowired
 	private MovementRepository movementRepository;
@@ -71,14 +73,16 @@ class MovementMigrationTest extends AbstractIntegrationTest {
 	void movementIsSavedAndReadWithItsDateInMilliseconds() {
 		long userId = insertUser("a@x.com");
 		Instant occurredAt = Instant.parse("2026-11-19T18:30:00.123Z");
+		long categoryId = othersId(jdbcTemplate, "GASTO");
 
 		Movement saved = movementRepository.saveAndFlush(
-				new Movement(userId, 15_000L, MovementType.GASTO, occurredAt, "Almuerzo"));
+				new Movement(userId, 15_000L, MovementType.GASTO, categoryId, occurredAt, "Almuerzo"));
 		Movement read = movementRepository.findById(saved.getId()).orElseThrow();
 
 		assertThat(read.getUserId()).isEqualTo(userId);
 		assertThat(read.getAmount()).isEqualTo(15_000L);
 		assertThat(read.getType()).isEqualTo(MovementType.GASTO);
+		assertThat(read.getCategoryId()).isEqualTo(categoryId);
 		assertThat(read.getOccurredAt()).isEqualTo(occurredAt);
 		assertThat(read.getDescription()).isEqualTo("Almuerzo");
 		assertThat(read.getDeletedAt()).isNull();
@@ -86,7 +90,7 @@ class MovementMigrationTest extends AbstractIntegrationTest {
 
 	@Test
 	void movementTruncatesTheDateToMilliseconds() {
-		Movement movement = new Movement(1L, 100L, MovementType.INGRESO,
+		Movement movement = new Movement(1L, 100L, MovementType.INGRESO, 1L,
 				Instant.parse("2026-11-19T18:30:00.123456789Z"), null);
 
 		assertThat(movement.getOccurredAt()).isEqualTo(Instant.parse("2026-11-19T18:30:00.123Z"));
@@ -97,9 +101,9 @@ class MovementMigrationTest extends AbstractIntegrationTest {
 		long ownerId = insertUser("a@x.com");
 		long otherId = insertUser("b@x.com");
 		Movement own = movementRepository.save(
-				new Movement(ownerId, 100L, MovementType.INGRESO, Instant.now(), null));
+				new Movement(ownerId, 100L, MovementType.INGRESO, othersId(jdbcTemplate, "INGRESO"), Instant.now(), null));
 		Movement deleted = movementRepository.save(
-				new Movement(ownerId, 200L, MovementType.GASTO, Instant.now(), null));
+				new Movement(ownerId, 200L, MovementType.GASTO, othersId(jdbcTemplate, "GASTO"), Instant.now(), null));
 		jdbcTemplate.update("UPDATE movements SET deleted_at = now() WHERE id = ?", deleted.getId());
 
 		assertThat(movementRepository.findByIdAndUserIdAndDeletedAtIsNull(own.getId(), ownerId)).isPresent();

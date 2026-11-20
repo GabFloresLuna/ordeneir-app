@@ -29,6 +29,9 @@ public class Movement {
 	@Column(nullable = false, length = 10)
 	private MovementType type;
 
+	@Column(name = "category_id", nullable = false)
+	private Long categoryId;
+
 	@Column(name = "occurred_at", nullable = false)
 	private Instant occurredAt;
 
@@ -41,19 +44,22 @@ public class Movement {
 	protected Movement() {
 	}
 
-	public Movement(Long userId, Long amount, MovementType type, Instant occurredAt, String description) {
+	public Movement(Long userId, Long amount, MovementType type, Long categoryId, Instant occurredAt,
+			String description) {
 		this.userId = userId;
 		this.amount = amount;
 		this.type = type;
+		this.categoryId = categoryId;
 		// Truncada a milisegundos: lo devuelto es igual a lo guardado (plan 002).
 		this.occurredAt = occurredAt.truncatedTo(ChronoUnit.MILLIS);
 		this.description = description;
 	}
 
 	// Reemplazo completo de los campos editables; id y dueño no cambian (R14, plan D10).
-	public void replace(Long amount, MovementType type, Instant occurredAt, String description) {
+	public void replace(Long amount, MovementType type, Long categoryId, Instant occurredAt, String description) {
 		this.amount = amount;
 		this.type = type;
+		this.categoryId = categoryId;
 		this.occurredAt = occurredAt.truncatedTo(ChronoUnit.MILLIS);
 		this.description = description;
 	}
@@ -77,6 +83,10 @@ public class Movement {
 
 	public MovementType getType() {
 		return type;
+	}
+
+	public Long getCategoryId() {
+		return categoryId;
 	}
 
 	public Instant getOccurredAt() {

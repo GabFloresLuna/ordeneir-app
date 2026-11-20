@@ -1,5 +1,10 @@
 package cl.floresluna.ordenier.movement;
 
+import static cl.floresluna.ordenier.category.CategoryTestSupport.categoryField;
+import static cl.floresluna.ordenier.category.CategoryTestSupport.insertOwn;
+import static cl.floresluna.ordenier.category.CategoryTestSupport.markDeleted;
+import static cl.floresluna.ordenier.category.CategoryTestSupport.othersId;
+import static cl.floresluna.ordenier.category.CategoryTestSupport.predefinedId;
 import static cl.floresluna.ordenier.movement.MovementTestSupport.MOVEMENTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,6 +17,7 @@ import cl.floresluna.ordenier.movement.MovementTestSupport.TestUser;
 import com.jayway.jsonpath.JsonPath;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +48,7 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 				.andExpect(jsonPath("$.id").value(id))
 				.andExpect(jsonPath("$.amount").value(250000))
 				.andExpect(jsonPath("$.type").value("INGRESO"))
+				.andExpect(jsonPath("$.categoryId").value(othersId(jdbcTemplate, "INGRESO")))
 				.andExpect(jsonPath("$.occurredAt").value("2026-11-18T13:00:00Z"))
 				.andExpect(jsonPath("$.description").value("Sueldo"))
 				.andExpect(jsonPath("$.userId").doesNotExist());
@@ -57,7 +64,7 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 	void updateWithoutDescriptionLeavesItNull() throws Exception {
 		long id = createFor(ana, "Almuerzo");
 
-		update(ana, id, "{\"amount\":100,\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}")
+		update(ana, id, "{" + cat("GASTO") + "\"amount\":100,\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}")
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.description").value(org.hamcrest.Matchers.nullValue()));
 
@@ -68,7 +75,7 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 	void bodyWithIdOrUserIdDoesNotChangeIdOrOwner() throws Exception {
 		long id = createFor(ana, "Almuerzo");
 
-		update(ana, id, "{\"id\":999,\"userId\":" + bea.id() + ",\"amount\":500,\"type\":\"GASTO\","
+		update(ana, id, "{" + cat("GASTO") + "\"id\":999,\"userId\":" + bea.id() + ",\"amount\":500,\"type\":\"GASTO\","
 				+ "\"occurredAt\":\"" + NEW_DATE + "\"}")
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(id));
@@ -93,13 +100,13 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 		String tooLong = "x".repeat(201);
 
 		List<String> bodies = List.of(
-				"{\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}",
-				"{\"amount\":100,\"occurredAt\":\"" + NEW_DATE + "\"}",
-				"{\"amount\":100,\"type\":\"GASTO\"}",
+				"{" + cat("GASTO") + "\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}",
+				"{" + cat("GASTO") + "\"amount\":100,\"occurredAt\":\"" + NEW_DATE + "\"}",
+				"{" + cat("GASTO") + "\"amount\":100,\"type\":\"GASTO\"}",
 				body(0, "GASTO", NEW_DATE, null),
 				body(-1, "GASTO", NEW_DATE, null),
-				"{\"amount\":10.5,\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}",
-				"{\"amount\":\"100\",\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}",
+				"{" + cat("GASTO") + "\"amount\":10.5,\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}",
+				"{" + cat("GASTO") + "\"amount\":\"100\",\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}",
 				body(1_000_000_000_001L, "GASTO", NEW_DATE, null),
 				body(100, "ingreso", NEW_DATE, null),
 				body(100, "OTRO", NEW_DATE, null),
@@ -107,7 +114,7 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 				body(100, "GASTO", "2026-11-18", null),
 				body(100, "GASTO", future, null),
 				body(100, "GASTO", NEW_DATE, tooLong),
-				"{\"amount\":100,");
+				"{" + cat("GASTO") + "\"amount\":100,");
 
 		for (String invalid : bodies) {
 			update(ana, id, invalid)
@@ -170,7 +177,8 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 
 	private Map<String, Object> row(long id) {
 		return jdbcTemplate.queryForMap(
-				"SELECT user_id, amount, type, occurred_at, description, deleted_at FROM movements WHERE id = ?", id);
+				"SELECT user_id, amount, type, category_id, occurred_at, description, deleted_at FROM movements "
+						+ "WHERE id = ?", id);
 	}
 
 	private String notFoundBody(ResultActions result) throws Exception {
@@ -180,11 +188,75 @@ class MovementUpdateTest extends AbstractIntegrationTest {
 				.andReturn().getResponse().getContentAsString();
 	}
 
-	private static String body(long amount, String type, String occurredAt, String description) {
-		String json = "{\"amount\":" + amount + ",\"type\":\"" + type + "\",\"occurredAt\":\"" + occurredAt + "\"";
+	private String body(long amount, String type, String occurredAt, String description) {
+		String json = "{" + cat(type) + "\"amount\":" + amount + ",\"type\":\"" + type + "\",\"occurredAt\":\"" + occurredAt + "\"";
 		if (description != null) {
 			json += ",\"description\":\"" + description + "\"";
 		}
 		return json + "}";
+	}
+
+	@Test
+	void updateChangesTheCategoryToAnotherOfTheSameType() throws Exception {
+		long id = createFor(ana, "Almuerzo");
+		long food = predefinedId(jdbcTemplate, "Alimentación", "GASTO");
+		long own = insertOwn(jdbcTemplate, ana.id(), "Mascotas", "GASTO");
+
+		for (long categoryId : List.of(food, own)) {
+			update(ana, id, withCategory(categoryId))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.categoryId").value(categoryId));
+			assertThat(row(id).get("category_id")).isEqualTo(categoryId);
+		}
+	}
+
+	@Test
+	void missingOrNonIntegerCategoryIdReturns400DatosInvalidosAndLeavesMovementIntact() throws Exception {
+		long id = createFor(ana, "Almuerzo");
+		Map<String, Object> before = row(id);
+
+		update(ana, id, "{\"amount\":100,\"type\":\"GASTO\",\"occurredAt\":\"" + NEW_DATE + "\"}")
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.codigo").value("DATOS_INVALIDOS"));
+		for (String value : List.of("null", "\"5\"", "1.5", "true", "[]")) {
+			update(ana, id, "{\"categoryId\":" + value + ",\"amount\":100,\"type\":\"GASTO\","
+					+ "\"occurredAt\":\"" + NEW_DATE + "\"}")
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.codigo").value("DATOS_INVALIDOS"));
+		}
+
+		assertThat(row(id)).isEqualTo(before);
+	}
+
+	@Test
+	void unknownDeletedForeignOrWrongTypeCategoryReturns400CategoriaInvalidaAndLeavesMovementIntact()
+			throws Exception {
+		long id = createFor(ana, "Almuerzo");
+		Map<String, Object> before = row(id);
+		long foreign = insertOwn(jdbcTemplate, bea.id(), "De Bea", "GASTO");
+		long deleted = insertOwn(jdbcTemplate, ana.id(), "Borrada", "GASTO");
+		markDeleted(jdbcTemplate, deleted);
+		long wrongType = othersId(jdbcTemplate, "INGRESO");
+
+		List<String> bodies = new ArrayList<>();
+		for (long categoryId : List.of(999_999L, -1L, foreign, deleted, wrongType)) {
+			bodies.add(update(ana, id, withCategory(categoryId))
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.codigo").value("CATEGORIA_INVALIDA"))
+					.andExpect(jsonPath("$.mensaje").isNotEmpty())
+					.andReturn().getResponse().getContentAsString());
+		}
+
+		assertThat(bodies).allMatch(bodies.get(0)::equals);
+		assertThat(row(id)).isEqualTo(before);
+	}
+
+	private static String withCategory(long categoryId) {
+		return "{\"categoryId\":" + categoryId + ",\"amount\":100,\"type\":\"GASTO\",\"occurredAt\":\""
+				+ NEW_DATE + "\"}";
+	}
+
+	private String cat(String type) {
+		return categoryField(jdbcTemplate, type);
 	}
 }

@@ -1,5 +1,8 @@
 package cl.floresluna.ordenier.movement;
 
+import cl.floresluna.ordenier.category.Category;
+import cl.floresluna.ordenier.category.CategoryRepository;
+import cl.floresluna.ordenier.common.InvalidCategoryException;
 import cl.floresluna.ordenier.common.InvalidDataException;
 import cl.floresluna.ordenier.common.MovementNotFoundException;
 import cl.floresluna.ordenier.common.PageResponse;
@@ -25,19 +28,32 @@ public class MovementService {
 			.and(Sort.by(Sort.Direction.DESC, "id"));
 
 	private final MovementRepository movementRepository;
+	private final CategoryRepository categoryRepository;
 	private final Clock clock;
 
-	public MovementService(MovementRepository movementRepository, Clock clock) {
+	public MovementService(MovementRepository movementRepository, CategoryRepository categoryRepository,
+			Clock clock) {
 		this.movementRepository = movementRepository;
+		this.categoryRepository = categoryRepository;
 		this.clock = clock;
 	}
 
 	// El dueño viene siempre del JWT, nunca del cuerpo (R19, plan D5).
 	public MovementResponse create(long userId, MovementRequest request) {
 		MovementRequest.Validated data = request.validate(clock);
+		requireValidCategory(userId, data);
 		Movement saved = movementRepository.save(new Movement(userId, data.amount(), data.type(),
-				data.occurredAt(), data.description()));
+				data.categoryId(), data.occurredAt(), data.description()));
 		return MovementResponse.from(saved);
+	}
+
+	// Inexistente, eliminada, ajena o de otro tipo: mismo error en todos los casos (R15, plan D7).
+	private void requireValidCategory(long userId, MovementRequest.Validated data) {
+		Category category = categoryRepository.findVisible(data.categoryId(), userId)
+				.orElseThrow(InvalidCategoryException::new);
+		if (category.getType() != data.type()) {
+			throw new InvalidCategoryException();
+		}
 	}
 
 	// Inexistente, eliminado o ajeno dan la misma respuesta (R12, plan D6).
@@ -51,9 +67,10 @@ public class MovementService {
 	@Transactional
 	public MovementResponse update(long userId, long id, MovementRequest request) {
 		MovementRequest.Validated data = request.validate(clock);
+		requireValidCategory(userId, data);
 		Movement movement = movementRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
 				.orElseThrow(MovementNotFoundException::new);
-		movement.replace(data.amount(), data.type(), data.occurredAt(), data.description());
+		movement.replace(data.amount(), data.type(), data.categoryId(), data.occurredAt(), data.description());
 		return MovementResponse.from(movement);
 	}
 
