@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MovementService {
@@ -44,6 +45,16 @@ public class MovementService {
 		return movementRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
 				.map(MovementResponse::from)
 				.orElseThrow(MovementNotFoundException::new);
+	}
+
+	// Reemplaza los campos editables; se valida antes de buscar y todo va en una transacción (R14-R16, plan D10).
+	@Transactional
+	public MovementResponse update(long userId, long id, MovementRequest request) {
+		MovementRequest.Validated data = request.validate(clock);
+		Movement movement = movementRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
+				.orElseThrow(MovementNotFoundException::new);
+		movement.replace(data.amount(), data.type(), data.occurredAt(), data.description());
+		return MovementResponse.from(movement);
 	}
 
 	// Solo movimientos del usuario y no eliminados; `mes` (AAAA-MM) va en hora de Santiago (R6-R10, plan D7, D8).

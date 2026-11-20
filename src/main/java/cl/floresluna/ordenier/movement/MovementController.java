@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,5 +48,10 @@ public class MovementController {
 	@GetMapping("/{id}")
 	public MovementResponse get(@PathVariable long id) {
 		return movementService.get(authenticatedUser.id(), id);
+	}
+
+	@PutMapping("/{id}")
+	public MovementResponse update(@PathVariable long id, @RequestBody MovementRequest request) {
+		return movementService.update(authenticatedUser.id(), id, request);
 	}
 }

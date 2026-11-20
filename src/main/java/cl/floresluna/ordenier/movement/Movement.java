@@ -50,6 +50,14 @@ public class Movement {
 		this.description = description;
 	}
 
+	// Reemplazo completo de los campos editables; id y dueño no cambian (R14, plan D10).
+	public void replace(Long amount, MovementType type, Instant occurredAt, String description) {
+		this.amount = amount;
+		this.type = type;
+		this.occurredAt = occurredAt.truncatedTo(ChronoUnit.MILLIS);
+		this.description = description;
+	}
+
 	public Long getId() {
 		return id;
 	}
