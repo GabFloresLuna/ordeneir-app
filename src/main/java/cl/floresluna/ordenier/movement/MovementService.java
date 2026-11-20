@@ -57,6 +57,14 @@ public class MovementService {
 		return MovementResponse.from(movement);
 	}
 
+	// Borrado lógico: marca `deleted_at`; inexistente, eliminado o ajeno dan 404 (R17, R18, plan D6).
+	@Transactional
+	public void delete(long userId, long id) {
+		Movement movement = movementRepository.findByIdAndUserIdAndDeletedAtIsNull(id, userId)
+				.orElseThrow(MovementNotFoundException::new);
+		movement.markDeleted(clock.instant());
+	}
+
 	// Solo movimientos del usuario y no eliminados; `mes` (AAAA-MM) va en hora de Santiago (R6-R10, plan D7, D8).
 	public PageResponse<MovementResponse> list(long userId, String mes, int page, int size) {
 		PageRequest pageable = PageRequest.of(page, size, NEWEST_FIRST);

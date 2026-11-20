@@ -6,6 +6,7 @@ import cl.floresluna.ordenier.movement.dto.MovementRequest;
 import cl.floresluna.ordenier.movement.dto.MovementResponse;
 import cl.floresluna.ordenier.security.AuthenticatedUser;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,5 +54,11 @@ public class MovementController {
 	@PutMapping("/{id}")
 	public MovementResponse update(@PathVariable long id, @RequestBody MovementRequest request) {
 		return movementService.update(authenticatedUser.id(), id, request);
+	}
+
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable long id) {
+		movementService.delete(authenticatedUser.id(), id);
 	}
 }

@@ -58,6 +58,11 @@ public class Movement {
 		this.description = description;
 	}
 
+	// Borrado lógico: la fila se conserva con la fecha y hora de eliminación (R17, plan D1).
+	public void markDeleted(Instant deletedAt) {
+		this.deletedAt = deletedAt;
+	}
+
 	public Long getId() {
 		return id;
 	}
