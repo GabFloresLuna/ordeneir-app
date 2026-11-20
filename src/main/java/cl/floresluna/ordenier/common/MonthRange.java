@@ -24,6 +24,11 @@ public record MonthRange(Instant from, Instant to) {
 		return of(YearMonth.from(instant.atZone(SANTIAGO)));
 	}
 
+	/** Mes `AAAA-MM` al que pertenece un instante, en hora de Santiago. */
+	public static String monthOf(Instant instant) {
+		return YearMonth.from(instant.atZone(SANTIAGO)).toString();
+	}
+
 	private static MonthRange of(YearMonth month) {
 		return new MonthRange(month.atDay(1).atStartOfDay(SANTIAGO).toInstant(),
 				month.plusMonths(1).atDay(1).atStartOfDay(SANTIAGO).toInstant());

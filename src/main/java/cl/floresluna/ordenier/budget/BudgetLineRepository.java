@@ -1,6 +1,7 @@
 package cl.floresluna.ordenier.budget;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,9 @@ public interface BudgetLineRepository extends JpaRepository<BudgetLine, Long> {
 	@Query("select l from BudgetLine l, Category c where l.categoryId = c.id and l.budgetId = :budgetId "
 			+ "order by lower(c.name), c.id")
 	List<BudgetLine> findByBudgetIdOrderedByCategoryName(@Param("budgetId") Long budgetId);
+
+	// Línea de una categoría dentro de un presupuesto, si la tiene (R25, plan 003 D12).
+	Optional<BudgetLine> findByBudgetIdAndCategoryId(Long budgetId, Long categoryId);
 
 	// Descarta las líneas de una categoría eliminada (R11, plan 003 D13).
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
