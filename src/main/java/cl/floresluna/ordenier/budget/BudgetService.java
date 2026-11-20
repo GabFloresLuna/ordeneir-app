@@ -3,6 +3,7 @@ package cl.floresluna.ordenier.budget;
 import cl.floresluna.ordenier.budget.dto.BudgetRequest;
 import cl.floresluna.ordenier.budget.dto.BudgetResponse;
 import cl.floresluna.ordenier.category.CategoryRepository;
+import cl.floresluna.ordenier.common.BudgetNotFoundException;
 import cl.floresluna.ordenier.common.BudgetSumExceedsException;
 import cl.floresluna.ordenier.common.InvalidCategoryException;
 import cl.floresluna.ordenier.common.MonthRange;
@@ -57,6 +58,24 @@ public class BudgetService {
 			budgetLineRepository.save(new BudgetLine(budget.getId(), line.categoryId(), line.amount()));
 		}
 		return toResponse(userId, month, range, budget.getAmount(), budget.getId());
+	}
+
+	// El mes se valida antes de buscar (plan 003 D11); sin presupuesto del usuario para el mes, 404 (R22).
+	@Transactional(readOnly = true)
+	public BudgetResponse get(long userId, String month) {
+		MonthRange range = MonthRange.parse(month);
+		Budget budget = budgetRepository.findByUserIdAndMonth(userId, month)
+				.orElseThrow(BudgetNotFoundException::new);
+		return toResponse(userId, month, range, budget.getAmount(), budget.getId());
+	}
+
+	// Borrado físico: las líneas caen por ON DELETE CASCADE (plan 003 D11, R23).
+	@Transactional
+	public void delete(long userId, String month) {
+		MonthRange.parse(month);
+		Budget budget = budgetRepository.findByUserIdAndMonth(userId, month)
+				.orElseThrow(BudgetNotFoundException::new);
+		budgetRepository.delete(budget);
 	}
 
 	// Inexistente, eliminada, ajena o de tipo INGRESO: mismo error en todos los casos (R20, plan D4).

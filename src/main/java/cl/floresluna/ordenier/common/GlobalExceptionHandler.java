@@ -49,6 +49,11 @@ public class GlobalExceptionHandler {
 				"La suma de los presupuestos por categoría supera el presupuesto general.");
 	}
 
+	@ExceptionHandler(BudgetNotFoundException.class)
+	ResponseEntity<ApiError> handleBudgetNotFound() {
+		return json(HttpStatus.NOT_FOUND, "PRESUPUESTO_NO_ENCONTRADO", "No hay presupuesto para ese mes.");
+	}
+
 	@ExceptionHandler(CategoryDuplicateException.class)
 	ResponseEntity<ApiError> handleCategoryDuplicate() {
 		return json(HttpStatus.CONFLICT, "CATEGORIA_DUPLICADA", "Ya existe una categoría con ese nombre.");
