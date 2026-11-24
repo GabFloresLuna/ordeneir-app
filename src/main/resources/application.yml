@@ -2,9 +2,9 @@ spring:
   application:
     name: ordenier
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:}
+    username: ${DB_USER:}
+    password: ${DB_PASSWORD:}
   web:
     resources:
       add-mappings: false
@@ -14,4 +14,4 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:}
