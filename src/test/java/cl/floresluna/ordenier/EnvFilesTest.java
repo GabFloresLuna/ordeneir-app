@@ -95,4 +95,21 @@ class EnvFilesTest {
 		}
 		assertThat(found).containsExactlyInAnyOrderElementsOf(NAMES);
 	}
+
+	@Test
+	void readmeHasTheEnvironmentVariablesSectionWithNamesAndLoadCommand() throws IOException {
+		String readme = Files.readString(Path.of("README.md"), StandardCharsets.UTF_8);
+		assertThat(readme).contains("## Variables de entorno");
+		assertThat(readme).contains("DB_URL", "DB_USER", "DB_PASSWORD", "JWT_SECRET");
+		assertThat(readme).contains(". .\\scripts\\load-env.ps1");
+		assertThat(readme).contains(".\\mvnw spring-boot:run");
+		assertThat(readme).contains(".\\mvnw.cmd test");
+	}
+
+	@Test
+	void readmeExplainsTheJdbcErrorAndTheExecutionPolicy() throws IOException {
+		String readme = Files.readString(Path.of("README.md"), StandardCharsets.UTF_8);
+		assertThat(readme).contains("'url' must start with \"jdbc\"");
+		assertThat(readme).contains("Set-ExecutionPolicy");
+	}
 }
