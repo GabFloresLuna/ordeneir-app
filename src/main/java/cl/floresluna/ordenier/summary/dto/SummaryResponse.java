@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Resumen del mes (R1): totales, balance, desglose por categoría y presupuesto (nulo si no hay).
- * Montos enteros en CLP (constitución, art. 3).
+ * Montos enteros en CLP (AGENTS.md, reglas técnicas).
  */
 public record SummaryResponse(String month, long totalIncome, long totalExpenses, long balance,
 		List<CategoryTotal> expensesByCategory, List<CategoryTotal> incomeByCategory, BudgetResponse budget) {

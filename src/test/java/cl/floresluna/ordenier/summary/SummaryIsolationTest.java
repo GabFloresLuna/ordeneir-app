@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
-/** R10 (constitución, art. 4): cada usuario ve solo su resumen; el del otro queda intacto. */
+/** R10 (constitución, art. 6): cada usuario ve solo su resumen; el del otro queda intacto. */
 class SummaryIsolationTest extends AbstractIntegrationTest {
 
 	private static final String MONTH = "2026-11";

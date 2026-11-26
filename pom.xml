@@ -13,7 +13,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>ordenier</name>
 	<description>Backend de Ordenier, app de finanzas personales (proyecto de portafolio)</description>
-	<url>https://github.com/GabFloresLuna/ordeneir-app</url>
+	<url>https://github.com/GabFloresLuna/ordenier-app</url>
 	<developers>
 		<developer>
 			<name>Gabriel Flores</name>
@@ -21,8 +21,8 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:https://github.com/GabFloresLuna/ordeneir-app.git</connection>
-		<url>https://github.com/GabFloresLuna/ordeneir-app</url>
+		<connection>scm:git:https://github.com/GabFloresLuna/ordenier-app.git</connection>
+		<url>https://github.com/GabFloresLuna/ordenier-app</url>
 	</scm>
 	<properties>
 		<java.version>21</java.version>

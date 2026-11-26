@@ -23,7 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
 /**
- * R28 / constitución art. 4: ningún usuario ve, usa, edita ni elimina las categorías propias ni el presupuesto de otro.
+ * R28 / constitución art. 6: ningún usuario ve, usa, edita ni elimina las categorías propias ni el presupuesto de otro.
  * Todo responde igual que si no existieran, y los datos del dueño quedan intactos.
  */
 class BudgetIsolationTest extends AbstractIntegrationTest {

@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
-/** R19 / constitución art. 4: un usuario no ve, lista, edita ni elimina movimientos de otro. */
+/** R19 / constitución art. 6: un usuario no ve, lista, edita ni elimina movimientos de otro. */
 class MovementIsolationTest extends AbstractIntegrationTest {
 
 	private static final String DATE = "2026-11-19T15:30:00-03:00";
